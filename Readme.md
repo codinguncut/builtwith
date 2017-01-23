@@ -35,3 +35,7 @@ Here is some example usage:
     >>> builtwith('http://joomla.org') 
     {u'font-scripts': [u'Google Font API'], u'miscellaneous': [u'Gravatar'], u'web-servers': [u'LiteSpeed'], u'javascript-frameworks': [u'jQuery'], u'programming-languages': [u'PHP'], u'web-frameworks': [u'Twitter Bootstrap'], u'cms': [u'Joomla'], u'video-players': [u'YouTube']}
 ```
+
+### License
+
+LGPL
