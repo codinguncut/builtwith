@@ -6,16 +6,16 @@ def read(filename):
 
 setup(
     name='builtwith', 
-    version='1.3.2',
+    version='1.4',
     packages=['builtwith'],
-    author='Richard Penman',
-    author_email='richard@webscraping.com',
+    author='Johannes Ahlmann, original: Richard Penman',
+    author_email='johannes@scrapinghub.com',
     description='Detect the technology used by a website, such as Apache, JQuery, and Wordpress.',
     install_requires=[
         'six',
         'regex'
     ],
     long_description=read('README.rst'),
-    url='https://bitbucket.org/richardpenman/builtwith',
+    url='https://github.com/codinguncut/builtwith'
     license='lgpl'
 )
