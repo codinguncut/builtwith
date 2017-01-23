@@ -11,19 +11,23 @@ re._MAXCACHE = 100000
 RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', flags=re.IGNORECASE)
 
 
+def _output(dct):
+    return json.dumps(dct, sort_keys=True)
+
+
 def builtwith(url, headers=None, html=None, user_agent='builtwith'):
     """Detect the technology used to build a website
 
-    >>> builtwith('http://wordpress.com')
-    {u'blogs': [u'PHP', u'WordPress'], u'font-scripts': [u'Google Font API'], u'web-servers': [u'Nginx'], u'javascript-frameworks': [u'Modernizr'], u'programming-languages': [u'PHP'], u'cms': [u'WordPress']}
-    >>> builtwith('http://webscraping.com')
-    {u'javascript-frameworks': [u'jQuery', u'Modernizr'], u'web-frameworks': [u'Twitter Bootstrap'], u'web-servers': [u'Nginx']}
-    >>> builtwith('http://microsoft.com')
-    {u'javascript-frameworks': [u'jQuery'], u'mobile-frameworks': [u'jQuery Mobile'], u'operating-systems': [u'Windows Server'], u'web-servers': [u'IIS']}
-    >>> builtwith('http://jquery.com')
-    {u'cdn': [u'CloudFlare'], u'web-servers': [u'Nginx'], u'javascript-frameworks': [u'jQuery', u'Modernizr'], u'programming-languages': [u'PHP'], u'cms': [u'WordPress'], u'blogs': [u'PHP', u'WordPress']}
-    >>> builtwith('http://joomla.org')
-    {u'font-scripts': [u'Google Font API'], u'miscellaneous': [u'Gravatar'], u'web-servers': [u'LiteSpeed'], u'javascript-frameworks': [u'jQuery'], u'programming-languages': [u'PHP'], u'web-frameworks': [u'Twitter Bootstrap'], u'cms': [u'Joomla'], u'video-players': [u'YouTube']}
+    >>> _output(builtwith("http://wordpress.com"))
+    '{"Blogs": ["PHP", "WordPress"], "CMS": ["WordPress"], "Font Scripts": ["Google Font API"], "Javascript Frameworks": ["Modernizr"], "Programming Languages": ["PHP"], "Web Servers": ["Nginx"]}'
+    >>> _output(builtwith("http://webscraping.com"))
+    '{"Javascript Frameworks": ["jQuery", "Modernizr"], "Web Frameworks": ["Twitter Bootstrap"], "Web Servers": ["Nginx"]}'
+    >>> _output(builtwith("http://microsoft.com"))
+    '{"Javascript Frameworks": ["jQuery"], "Mobile Frameworks": ["jQuery Mobile"], "Web Servers": ["IIS"], "Operating Systems": ["Windows Server"]}'
+    >>> _output(builtwith("http://jquery.com"))
+    '{"Blogs": ["PHP", "WordPress"], "CDN": ["CloudFlare"], "CMS": ["WordPress"], "Javascript Frameworks": ["jQuery", "Modernizr"], "Programming Languages": ["PHP"], "Web Servers": ["Nginx"]}'
+    >>> _output(builtwith("http://joomla.org"))
+    '{"CMS": ["Joomla"], "Font Scripts": ["Google Font API"], "Javascript Frameworks": ["jQuery"], "Miscellaneous": ["Gravatar"], "Programming Languages": ["PHP"], "Video Players": ["YouTube"], "Web Frameworks": ["Twitter Bootstrap"], "Web Servers": ["LiteSpeed"]}'
     """
     techs = {}
 
