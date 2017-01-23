@@ -15,7 +15,7 @@ setup(
         'six',
         'regex'
     ],
-    long_description=read('README.md'),
+    long_description=read('../README.md'),
     url='https://github.com/codinguncut/builtwith',
     license='lgpl'
 )
