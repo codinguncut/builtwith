@@ -11,6 +11,9 @@ setup(
     author='Richard Penman',
     author_email='richard@webscraping.com',
     description='Detect the technology used by a website, such as Apache, JQuery, and Wordpress.',
+    install_requires=[
+        'six',
+    ],
     long_description=read('README.rst'),
     url='https://bitbucket.org/richardpenman/builtwith',
     license='lgpl'
