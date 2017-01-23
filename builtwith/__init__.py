@@ -1,23 +1,28 @@
+from __future__ import print_function
+
 import sys
 import os
-import re
+import regex as re
 import json
-import urllib2
+from six.moves.urllib.request import urlopen, Request
 
+re._MAXCACHE = 100000
+
+RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', flags=re.IGNORECASE)
 
 
 def builtwith(url, headers=None, html=None, user_agent='builtwith'):
     """Detect the technology used to build a website
 
-    >>> builtwith('http://wordpress.com') 
+    >>> builtwith('http://wordpress.com')
     {u'blogs': [u'PHP', u'WordPress'], u'font-scripts': [u'Google Font API'], u'web-servers': [u'Nginx'], u'javascript-frameworks': [u'Modernizr'], u'programming-languages': [u'PHP'], u'cms': [u'WordPress']}
-    >>> builtwith('http://webscraping.com') 
+    >>> builtwith('http://webscraping.com')
     {u'javascript-frameworks': [u'jQuery', u'Modernizr'], u'web-frameworks': [u'Twitter Bootstrap'], u'web-servers': [u'Nginx']}
-    >>> builtwith('http://microsoft.com') 
+    >>> builtwith('http://microsoft.com')
     {u'javascript-frameworks': [u'jQuery'], u'mobile-frameworks': [u'jQuery Mobile'], u'operating-systems': [u'Windows Server'], u'web-servers': [u'IIS']}
-    >>> builtwith('http://jquery.com') 
+    >>> builtwith('http://jquery.com')
     {u'cdn': [u'CloudFlare'], u'web-servers': [u'Nginx'], u'javascript-frameworks': [u'jQuery', u'Modernizr'], u'programming-languages': [u'PHP'], u'cms': [u'WordPress'], u'blogs': [u'PHP', u'WordPress']}
-    >>> builtwith('http://joomla.org') 
+    >>> builtwith('http://joomla.org')
     {u'font-scripts': [u'Google Font API'], u'miscellaneous': [u'Gravatar'], u'web-servers': [u'LiteSpeed'], u'javascript-frameworks': [u'jQuery'], u'programming-languages': [u'PHP'], u'web-frameworks': [u'Twitter Bootstrap'], u'cms': [u'Joomla'], u'video-players': [u'YouTube']}
     """
     techs = {}
@@ -31,17 +36,17 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
     # download content
     if None in (headers, html):
         try:
-            request = urllib2.Request(url, None, {'User-Agent': user_agent})
+            request = Request(url, None, {'User-Agent': user_agent})
             if html:
                 # already have HTML so just need to make HEAD request for headers
                 request.get_method = lambda : 'HEAD'
-            response = urllib2.urlopen(request)
+            response = urlopen(request)
             if headers is None:
                 headers = response.headers
             if html is None:
-                html = response.read()
-        except Exception, e:
-            print 'Error:', e
+                html = response.read().decode('utf-8')
+        except Exception as e:
+            print('Error:', e)
             request = None
 
     # check headers
@@ -65,14 +70,14 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
 
         # check meta
         # XXX add proper meta data parsing
-        metas = dict(re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', re.IGNORECASE).findall(html))
+        metas = dict(RE_META.findall(html))
         for app_name, app_spec in data['apps'].items():
             for name, content in app_spec.get('meta', {}).items():
                 if name in metas:
                     if contains(metas[name], content):
                         add_app(techs, app_name, app_spec)
                         break
-                
+
     return techs
 parse = builtwith
 
@@ -91,7 +96,7 @@ def add_app(techs, app_name, app_spec):
                 implies = [implies]
             for app_name in implies:
                 add_app(techs, app_name, data['apps'][app_name])
-           
+
 
 def get_categories(app_spec):
     """Return category names for this app_spec
@@ -102,12 +107,12 @@ def get_categories(app_spec):
 def contains(v, regex):
     """Removes meta data from regex then checks for a regex match
     """
-    return re.compile(regex.split('\\;')[0], flags=re.IGNORECASE).search(v)
+    return re.search(regex.split('\\;')[0], v, flags=re.IGNORECASE)
 
 
 def contains_dict(d1, d2):
     """Takes 2 dictionaries
-    
+
     Returns True if d1 contains all items in d2"""
     for k2, v2 in d2.items():
         v1 = d1.get(k2)
@@ -135,6 +140,6 @@ if __name__ == '__main__':
         for url in urls:
             results = builtwith(url)
             for result in sorted(results.items()):
-                print '%s: %s' % result
+                print('%s: %s' % result)
     else:
-        print 'Usage: %s url1 [url2 url3 ...]' % sys.argv[0]
+        print('Usage: %s url1 [url2 url3 ...]' % sys.argv[0])
