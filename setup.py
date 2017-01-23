@@ -16,6 +16,6 @@ setup(
         'regex'
     ],
     long_description=read('README.rst'),
-    url='https://github.com/codinguncut/builtwith'
+    url='https://github.com/codinguncut/builtwith',
     license='lgpl'
 )
