@@ -5,10 +5,13 @@ import os
 import regex as re
 import json
 from six.moves.urllib.request import urlopen, Request
+from lxml import etree
 
 re._MAXCACHE = 100000
 
-RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', flags=re.IGNORECASE)
+RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', flags=re.I | re.M)
+RE_SCRIPTS = re.compile(r'<script[^>]+src=(?:"|\')([^"\']+)',
+                        flags=re.I | re.M)
 
 
 def _output(dct):
@@ -62,15 +65,26 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
 
     # check html
     if html:
+        # node version only looks in script tag itself
+        script_tags = RE_SCRIPTS.findall(html)
+
         for app_name, app_spec in data['apps'].items():
-            for key in 'html', 'script':
-                snippets = app_spec.get(key, [])
+            for s_tag in script_tags:
+                snippets = app_spec.get('script', [])
                 if not isinstance(snippets, list):
                     snippets = [snippets]
                 for snippet in snippets:
-                    if contains(html, snippet):
+                    if contains(s_tag, snippet):
                         add_app(techs, app_name, app_spec)
                         break
+
+            snippets = app_spec.get('html', [])
+            if not isinstance(snippets, list):
+                snippets = [snippets]
+            for snippet in snippets:
+                if contains(html, snippet):
+                    add_app(techs, app_name, app_spec)
+                    break
 
         # check meta
         # XXX add proper meta data parsing
@@ -98,6 +112,7 @@ def add_app(techs, app_name, app_spec):
             implies = app_spec.get('implies', [])
             if not isinstance(implies, list):
                 implies = [implies]
+            implies = [im.split('\\;')[0] for im in implies]
             for app_name in implies:
                 add_app(techs, app_name, data['apps'][app_name])
 
