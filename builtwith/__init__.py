@@ -2,10 +2,11 @@ from __future__ import print_function
 
 import sys
 import os
-import re
+import regex as re
 import json
 from six.moves.urllib.request import urlopen, Request
 
+from .dict_re import chain_patterns
 
 RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', re.IGNORECASE)
 
@@ -31,6 +32,11 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
         if 'url' in app_spec:
             if contains(url, app_spec['url']):
                 add_app(techs, app_name, app_spec)
+    """
+    for app_name in rules['url'](url):
+        app_spec = data['apps'][app_name]
+        add_app(techs, app_name, app_spec)
+    """
 
     # download content
     if None in (headers, html):
@@ -58,6 +64,13 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
 
     # check html
     if html:
+        """
+        for key in ('html', 'script'):
+            for app_name in rules[key](html):
+                app_spec = data['apps'][app_name]
+                add_app(techs, app_name, app_spec)
+
+        """
         for app_name, app_spec in data['apps'].items():
             for key in 'html', 'script':
                 snippets = app_spec.get(key, [])
@@ -131,23 +144,9 @@ def re_compile(regex):
     return re.compile(regex.split('\\;')[0], flags=re.I)
 
 
-def rexify(val):
-    if isinstance(val, list):
-        return '|'.join(r'(?:%s)' % (v.split('\\;')[0], ) for v in val)
-    else:
-        return val.split('\\;')[0]
-
-
-def chain_rules(dct, selector):
-    """ create combined regexes """
-    items = dct.items()
-    reverse = {('p_' + str(idx)):item[0] for idx, item in enumerate(items)}
-    forward = {v:k for k, v in reverse.items()}
-    rules = [r'(?P<%s>%s)' % (forward[k],
-                              rexify(v[selector]))
-             for k, v in items if selector in v]
-    res = re.compile('|'.join(rules))
-    return res, reverse
+def dict_slice(dct, selector):
+    """ slice dict by key/selector """
+    return {k:v[selector] for k, v in dct.items() if selector in v}
 
 
 def load_apps(filename='apps.json.py'):
@@ -161,11 +160,14 @@ def load_apps(filename='apps.json.py'):
     # precompile regular expressions for repeated use
     # TODO: built per-type concatenated patterns
     apps = json_data['apps']
-    rules = {
-        'urls': chain_rules(apps, 'url'),
-        'html': chain_rules(apps, 'html'),
-        'script': chain_rules(apps, 'script')
+    rules = None
+    """
+    {
+        'url': chain_patterns(dict_slice(apps, 'url')),
+        'html': chain_patterns(dict_slice(apps, 'html')),
+        'script': chain_patterns(dict_slice(apps, 'script'))
     }
+    """
     for app_name, app in apps.items():
         for key in ['url', 'html', 'script']:
             if key in app:
