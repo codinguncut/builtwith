@@ -1,7 +1,7 @@
 """
 library to perform bulk regular expression matching.
 """
-import regex as re
+import re2 as re
 
 def _make_names(vals):
     """

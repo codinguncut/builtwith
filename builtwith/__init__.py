@@ -2,11 +2,12 @@ from __future__ import print_function
 
 import sys
 import os
-import regex as re
+import re2 as re
 import json
 from six.moves.urllib.request import urlopen, Request
 
 from .dict_re import chain_patterns
+from .is_regex import is_plain
 
 RE_META = re.compile('<meta[^>]*?name=[\'"]([^>]*?)[\'"][^>]*?content=[\'"]([^>]*?)[\'"][^>]*?>', re.IGNORECASE)
 
@@ -28,6 +29,7 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
     techs = {}
 
     # check URL
+    """
     for app_name, app_spec in data['apps'].items():
         if 'url' in app_spec:
             if contains(url, app_spec['url']):
@@ -36,7 +38,6 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
     for app_name in rules['url'](url):
         app_spec = data['apps'][app_name]
         add_app(techs, app_name, app_spec)
-    """
 
     # download content
     if None in (headers, html):
@@ -64,7 +65,6 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
 
     # check html
     if html:
-        """
         for key in ('html', 'script'):
             for app_name in rules[key](html):
                 app_spec = data['apps'][app_name]
@@ -80,6 +80,7 @@ def builtwith(url, headers=None, html=None, user_agent='builtwith'):
                     if contains(html, snippet):
                         add_app(techs, app_name, app_spec)
                         break
+        """
 
         # check meta
         # XXX add proper meta data parsing
@@ -141,6 +142,7 @@ def re_compile(regex):
     """
     compile regex from app.json.py in a uniform manner
     """
+    print('is_plain', is_plain(regex))
     return re.compile(regex.split('\\;')[0], flags=re.I)
 
 
@@ -160,14 +162,11 @@ def load_apps(filename='apps.json.py'):
     # precompile regular expressions for repeated use
     # TODO: built per-type concatenated patterns
     apps = json_data['apps']
-    rules = None
-    """
-    {
+    rules = {
         'url': chain_patterns(dict_slice(apps, 'url')),
         'html': chain_patterns(dict_slice(apps, 'html')),
         'script': chain_patterns(dict_slice(apps, 'script'))
     }
-    """
     for app_name, app in apps.items():
         for key in ['url', 'html', 'script']:
             if key in app:
@@ -189,6 +188,7 @@ def load_apps(filename='apps.json.py'):
 data, rules = load_apps()
 
 
+"""
 if __name__ == '__main__':
     urls = sys.argv[1:]
     if urls:
@@ -198,3 +198,4 @@ if __name__ == '__main__':
                 print('%s: %s' % result)
     else:
         print('Usage: %s url1 [url2 url3 ...]' % sys.argv[0])
+"""
